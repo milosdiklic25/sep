@@ -1,0 +1,34 @@
+package com.sep.web_shop.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "orders")
+public class Order {
+    public enum Status { CREATED, PSP_INITIATED, FAILED }
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID merchantOrderId;
+
+    @Column(name="merchant_timestamp", nullable = false)
+    private LocalDateTime merchantTimestamp;
+
+    @Column(name="amount", nullable = false)
+    private Double amount;
+
+    @Column(name="currency", nullable = false, length = 10)
+    private String currency;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="status", nullable = false, length = 20)
+    private Status status;
+}
