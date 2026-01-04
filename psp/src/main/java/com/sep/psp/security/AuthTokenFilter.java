@@ -1,6 +1,6 @@
 package com.sep.psp.security;
 
-import com.sep.psp.service.impl.CustomUserDetailsServiceImpl;
+import com.sep.psp.service.CustomUserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

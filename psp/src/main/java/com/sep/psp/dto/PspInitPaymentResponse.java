@@ -1,4 +1,4 @@
-package com.sep.web_shop.psp;
+package com.sep.psp.dto;
 
 import java.util.UUID;
 

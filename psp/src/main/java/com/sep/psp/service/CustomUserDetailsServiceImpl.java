@@ -1,4 +1,4 @@
-package com.sep.psp.service.impl;
+package com.sep.psp.service;
 
 import com.sep.psp.model.User;
 import com.sep.psp.repository.UserRepository;

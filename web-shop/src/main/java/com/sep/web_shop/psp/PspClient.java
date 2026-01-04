@@ -1,6 +1,9 @@
 package com.sep.web_shop.psp;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -8,12 +11,15 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class PspClient {
 
-    // Mocked PSP call
+    @Autowired
+    private RestClient restClient;
+
     public PspInitPaymentResponse initPayment(PspInitPaymentRequest req) {
-        // In a real implementation, you'd do HTTP POST to PSP backend.
-        // Here we just return a fake PSP frontend URL that includes the merchantOrderId.
-        String encodedOrderId = URLEncoder.encode(String.valueOf(req.merchantOrderId()), StandardCharsets.UTF_8);
-        String redirect = "http://localhost:4201/psp/pay?merchantOrderId=" + encodedOrderId;
-        return new PspInitPaymentResponse(redirect);
+        return restClient.post()
+                .uri("/api/payments/init")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(req)
+                .retrieve()
+                .body(PspInitPaymentResponse.class);
     }
 }
