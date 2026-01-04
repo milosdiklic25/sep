@@ -1,9 +1,14 @@
 package com.sep.psp.service;
 
+import com.sep.psp.bank.BankClient;
+import com.sep.psp.bank.BankGetUrlRequest;
+import com.sep.psp.dto.CardPaymentRequest;
+import com.sep.psp.dto.CardPaymentResponse;
 import com.sep.psp.dto.PspInitPaymentRequest;
 import com.sep.psp.dto.PspInitPaymentResponse;
 import com.sep.psp.model.Merchant;
 import com.sep.psp.model.Payment;
+import com.sep.psp.repository.BankMerchantInformationRepository;
 import com.sep.psp.repository.MerchantRepository;
 import com.sep.psp.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +16,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 @Service
 public class PspPaymentService {
     @Autowired
     private MerchantRepository merchantRepository;
     @Autowired
     private PaymentRepository paymentRepository;
+    @Autowired
+    private BankMerchantInformationRepository bankMerchantInformationRepository;
+    @Autowired
+    private BankClient bankClient;
 
     private final String pspFrontendBaseUrl;
 
@@ -39,7 +51,7 @@ public class PspPaymentService {
                 .merchantTimestamp(req.merchantTimestamp())
                 .amount(req.amount())
                 .currency(req.currency().trim().toUpperCase())
-                .status(Payment.Status.INITIATED)
+                .status(Payment.Status.PSP_INITIATED)
                 .build();
 
         paymentRepository.save(payment);
@@ -47,5 +59,22 @@ public class PspPaymentService {
         String redirectUrl = pspFrontendBaseUrl + "/pay/" + payment.getPspPaymentId();
 
         return new PspInitPaymentResponse(redirectUrl, payment.getPspPaymentId());
+    }
+
+    @Transactional
+    public CardPaymentResponse requestBankUrl(CardPaymentRequest req) {
+        Payment payment = paymentRepository.findById(req.orderId()).get();
+        UUID bankMerchantId = bankMerchantInformationRepository.findByMerchantId(payment.getMerchantId()).get().getBankMerchantId();
+        var bankReq = new BankGetUrlRequest(
+                bankMerchantId,
+                payment.getAmount(),
+                payment.getCurrency(),
+                payment.getPspPaymentId(),
+                LocalDateTime.now()
+        );
+
+        var resp = bankClient.getBankUrl(bankReq);
+
+        return new CardPaymentResponse(resp.redirectUrl());
     }
 }

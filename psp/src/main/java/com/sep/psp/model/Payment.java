@@ -13,7 +13,7 @@ import java.util.UUID;
 @Table(name = "payments")
 public class Payment {
 
-    public enum Status { INITIATED }
+    public enum Status { PSP_INITIATED }
 
     @Id
     @UuidGenerator

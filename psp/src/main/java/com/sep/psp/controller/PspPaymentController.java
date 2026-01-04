@@ -1,5 +1,7 @@
 package com.sep.psp.controller;
 
+import com.sep.psp.dto.CardPaymentRequest;
+import com.sep.psp.dto.CardPaymentResponse;
 import com.sep.psp.dto.PspInitPaymentRequest;
 import com.sep.psp.dto.PspInitPaymentResponse;
 import com.sep.psp.service.PspPaymentService;
@@ -16,5 +18,10 @@ public class PspPaymentController {
     @PostMapping("/init")
     public ResponseEntity<PspInitPaymentResponse> init(@RequestBody PspInitPaymentRequest req) {
         return ResponseEntity.ok(paymentService.initPayment(req));
+    }
+
+    @PostMapping("/card")
+    public ResponseEntity<CardPaymentResponse> card(@RequestBody CardPaymentRequest req) {
+        return ResponseEntity.ok(paymentService.requestBankUrl(req));
     }
 }
