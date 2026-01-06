@@ -13,7 +13,7 @@ public class PspClient {
 
     public PspUpdateStatusResponse getBankUrl(PspUpdateStatusRequest req) {
         return restClient.post()
-                .uri("/api/payments/url")
+                .uri("/api/payments/redirect")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(req)
                 .retrieve()

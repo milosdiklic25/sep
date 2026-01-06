@@ -1,4 +1,6 @@
 package com.sep.bank.psp;
 
-public record PspUpdateStatusResponse() {
+public record PspUpdateStatusResponse(
+        String redirectUrl
+) {
 }

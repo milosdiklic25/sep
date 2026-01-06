@@ -6,6 +6,10 @@ import com.sep.bank.dto.PayRequest;
 import com.sep.bank.dto.PayResponse;
 import com.sep.bank.exception.MerchantNotFoundException;
 import com.sep.bank.model.Payment;
+import com.sep.bank.model.Payment.Status;
+import com.sep.bank.psp.PspClient;
+import com.sep.bank.psp.PspUpdateStatusRequest;
+import com.sep.bank.psp.PspUpdateStatusResponse;
 import com.sep.bank.repository.BankMerchantRepository;
 import com.sep.bank.repository.CardRepository;
 import com.sep.bank.repository.PaymentRepository;
@@ -24,6 +28,8 @@ public class PaymentService {
     private PaymentRepository paymentRepository;
     @Autowired
     private CardRepository cardRepository;
+    @Autowired
+    private PspClient pspClient;
 
     private final String bankFrontendBaseUrl;
 
@@ -38,12 +44,12 @@ public class PaymentService {
             throw new MerchantNotFoundException(req.bankMerchantId());
         }
 
-        UUID paymentStan = UUID.randomUUID();
+        //UUID paymentStan = UUID.randomUUID();
         Payment payment = Payment.builder()
                 .bankMerchantId(req.bankMerchantId())
                 .amount(req.amount())
                 .currency(req.currency())
-                .stan(paymentStan)
+                .stan(req.pspPaymentId())
                 .pspTimestamp(req.pspTimestamp())
                 .build();
         Payment saved = paymentRepository.save(payment);
@@ -62,12 +68,12 @@ public class PaymentService {
         );
 
         if (cardOpt.isEmpty()) {
-            return PayResponse.fail("Card not found or details are invalid", paymentId, null, Payment.Status.FAILED);
+            return PayResponse.fail("Card not found or details are invalid", paymentId, null, Status.FAILED);
         }
 
         var paymentOpt = paymentRepository.findById(paymentId);
         if (paymentOpt.isEmpty()) {
-            return PayResponse.fail("Payment not found", paymentId, null, Payment.Status.ERRORED);
+            return PayResponse.fail("Payment not found", paymentId, null, Status.ERRORED);
         }
 
         var card = cardOpt.get();
@@ -79,14 +85,14 @@ public class PaymentService {
         Double balance = card.getAmount();
 
         if (cost == null || cost <= 0) {
-            return PayResponse.fail("Invalid payment amount", paymentId, stan, Payment.Status.ERRORED);
+            return PayResponse.fail("Invalid payment amount", paymentId, stan, Status.ERRORED);
         }
         if (balance == null) {
-            return PayResponse.fail("Card balance is not set", paymentId, stan, Payment.Status.ERRORED);
+            return PayResponse.fail("Card balance is not set", paymentId, stan, Status.ERRORED);
         }
 
         if (balance < cost) {
-            return PayResponse.fail("Insufficient funds", paymentId, stan, Payment.Status.FAILED);
+            return PayResponse.fail("Insufficient funds", paymentId, stan, Status.FAILED);
         }
 
         Double newBalance = balance - cost;
@@ -94,5 +100,21 @@ public class PaymentService {
         cardRepository.save(card);
 
         return PayResponse.ok(paymentId, cost, newBalance, stan);
+    }
+
+    @Transactional
+    public PspUpdateStatusResponse getRedirectUrl(PayResponse response) {
+        var paymentOpt = paymentRepository.findById(response.paymentId()).get();
+        paymentOpt.setStatus(response.status());
+        paymentRepository.save(paymentOpt);
+
+        var pspStatus = new PspUpdateStatusRequest(
+                response.status(),
+                response.paymentId(),
+                response.globalTransactionId(),
+                response.acquirerTimestamp()
+        );
+        var pspStatusResp = pspClient.getBankUrl(pspStatus);
+        return new PspUpdateStatusResponse(pspStatusResp.redirectUrl());
     }
 }

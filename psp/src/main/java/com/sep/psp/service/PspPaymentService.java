@@ -2,13 +2,13 @@ package com.sep.psp.service;
 
 import com.sep.psp.bank.BankClient;
 import com.sep.psp.bank.BankGetUrlRequest;
-import com.sep.psp.dto.CardPaymentRequest;
-import com.sep.psp.dto.CardPaymentResponse;
-import com.sep.psp.dto.PspInitPaymentRequest;
-import com.sep.psp.dto.PspInitPaymentResponse;
+import com.sep.psp.dto.*;
+import com.sep.psp.model.BankPaymentUpdate;
 import com.sep.psp.model.Merchant;
 import com.sep.psp.model.Payment;
+import com.sep.psp.model.Payment.Status;
 import com.sep.psp.repository.BankMerchantInformationRepository;
+import com.sep.psp.repository.BankPaymentUpdateRepository;
 import com.sep.psp.repository.MerchantRepository;
 import com.sep.psp.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +27,8 @@ public class PspPaymentService {
     private PaymentRepository paymentRepository;
     @Autowired
     private BankMerchantInformationRepository bankMerchantInformationRepository;
+    @Autowired
+    private BankPaymentUpdateRepository bankPaymentUpdateRepository;
     @Autowired
     private BankClient bankClient;
 
@@ -76,5 +78,34 @@ public class PspPaymentService {
         var resp = bankClient.getBankUrl(bankReq);
 
         return new CardPaymentResponse(resp.paymentUrl());
+    }
+
+    @Transactional
+    public BankRedirectResponse getStatusRedirect(BankRedirectRequest req) {
+        Payment payment = paymentRepository.findById(req.globalTransactionId()).get();
+        payment.setStatus(req.status());
+        paymentRepository.save(payment);
+
+        UUID merchantId = payment.getMerchantId();
+        Merchant merchant = merchantRepository.findById(merchantId).get();
+        String retVal;
+        if (req.status().equals(Status.SUCCEEDED)) {
+            retVal = merchant.getSuccessUrl();
+        } else if (req.status().equals(Status.FAILED)) {
+            retVal = merchant.getFailedUrl();
+        } else {
+            retVal = merchant.getErrorUrl();
+        }
+
+        var toSave = BankPaymentUpdate.builder()
+                .status(req.status())
+                .paymentId(req.paymentId())
+                .globalTransactionId(req.globalTransactionId())
+                .acquirerTimestamp(req.acquirerTimestamp())
+                .build();
+
+        bankPaymentUpdateRepository.save(toSave);
+
+        return new BankRedirectResponse(retVal);
     }
 }

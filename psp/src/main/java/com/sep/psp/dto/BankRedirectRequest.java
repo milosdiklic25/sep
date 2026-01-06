@@ -1,11 +1,11 @@
-package com.sep.bank.psp;
+package com.sep.psp.dto;
 
-import com.sep.bank.model.Payment.Status;
+import com.sep.psp.model.Payment.Status;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record PspUpdateStatusRequest(
+public record BankRedirectRequest(
         Status status,
         UUID paymentId,
         UUID globalTransactionId,

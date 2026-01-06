@@ -1,9 +1,6 @@
 package com.sep.psp.controller;
 
-import com.sep.psp.dto.CardPaymentRequest;
-import com.sep.psp.dto.CardPaymentResponse;
-import com.sep.psp.dto.PspInitPaymentRequest;
-import com.sep.psp.dto.PspInitPaymentResponse;
+import com.sep.psp.dto.*;
 import com.sep.psp.service.PspPaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,5 +20,10 @@ public class PspPaymentController {
     @PostMapping("/card")
     public ResponseEntity<CardPaymentResponse> getUrlRedirect(@RequestBody CardPaymentRequest req) {
         return ResponseEntity.ok(paymentService.requestBankUrl(req));
+    }
+
+    @PostMapping("/redirect")
+    public ResponseEntity<BankRedirectResponse> getStatusRedirect(@RequestBody BankRedirectRequest req) {
+        return ResponseEntity.ok(paymentService.getStatusRedirect(req));
     }
 }

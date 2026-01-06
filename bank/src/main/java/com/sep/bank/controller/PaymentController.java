@@ -4,6 +4,7 @@ import com.sep.bank.dto.GetRedirectUrlRequest;
 import com.sep.bank.dto.GetRedirectUrlResponse;
 import com.sep.bank.dto.PayRequest;
 import com.sep.bank.dto.PayResponse;
+import com.sep.bank.psp.PspUpdateStatusResponse;
 import com.sep.bank.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,9 @@ public class PaymentController {
     }
 
     @PostMapping("/pay/{paymentId}")
-    public ResponseEntity<PayResponse> pay(@PathVariable UUID paymentId, @RequestBody PayRequest request) {
-        return ResponseEntity.ok(paymentService.pay(paymentId, request));
+    public ResponseEntity<PspUpdateStatusResponse> pay(@PathVariable UUID paymentId, @RequestBody PayRequest request) {
+        var resp = paymentService.pay(paymentId, request);
+        var redirectUrl = paymentService.getRedirectUrl(resp);
+        return ResponseEntity.ok(redirectUrl);
     }
 }
