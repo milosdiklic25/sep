@@ -1,10 +1,7 @@
 package com.sep.bank.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -14,14 +11,17 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "payments")
 public class Payment {
+    public enum Status { CREATED, PSP_INITIATED, FAILED, ERRORED, SUCCEEDED }
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private UUID bankMerchantId;
-    private double amount;
+    private Double amount;
     private String currency;
     private UUID stan;
     private LocalDateTime pspTimestamp;
+    private Status status;
 }

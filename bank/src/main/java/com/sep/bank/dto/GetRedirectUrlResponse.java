@@ -1,4 +1,9 @@
 package com.sep.bank.dto;
 
-public record GetRedirectUrlResponse() {
+import java.util.UUID;
+
+public record GetRedirectUrlResponse(
+        String paymentUrl,
+        UUID paymentId
+) {
 }

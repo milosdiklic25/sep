@@ -75,6 +75,6 @@ public class PspPaymentService {
 
         var resp = bankClient.getBankUrl(bankReq);
 
-        return new CardPaymentResponse(resp.redirectUrl());
+        return new CardPaymentResponse(resp.paymentUrl());
     }
 }

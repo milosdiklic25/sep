@@ -14,7 +14,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "orders")
 public class Order {
-    public enum Status { CREATED, PSP_INITIATED, FAILED }
+    public enum Status { CREATED, PSP_INITIATED, FAILED, ERRORED, SUCCEEDED }
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID merchantOrderId;

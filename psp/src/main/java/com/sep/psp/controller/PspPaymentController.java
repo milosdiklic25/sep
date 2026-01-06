@@ -21,7 +21,7 @@ public class PspPaymentController {
     }
 
     @PostMapping("/card")
-    public ResponseEntity<CardPaymentResponse> card(@RequestBody CardPaymentRequest req) {
+    public ResponseEntity<CardPaymentResponse> getUrlRedirect(@RequestBody CardPaymentRequest req) {
         return ResponseEntity.ok(paymentService.requestBankUrl(req));
     }
 }
