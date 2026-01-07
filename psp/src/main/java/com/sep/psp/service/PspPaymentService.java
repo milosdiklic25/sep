@@ -109,7 +109,11 @@ public class PspPaymentService {
 
         bankPaymentUpdateRepository.save(toSave);
 
-        rabbitTemplate.convertAndSend("exchange", "routing.key", "message");
+        rabbitTemplate.convertAndSend(
+                "exchange",
+                "routing.key",
+                new PaymentStatusMessage(payment.getMerchantOrderId(), req.status())
+        );
 
         return new BankRedirectResponse(retVal);
     }

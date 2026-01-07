@@ -1,5 +1,6 @@
 package com.sep.web_shop.service;
 
+import com.sep.web_shop.dto.PaymentStatusMessage;
 import com.sep.web_shop.model.MerchantInformation;
 import com.sep.web_shop.model.Order;
 import com.sep.web_shop.dto.CreatePaymentRequest;
@@ -53,7 +54,9 @@ public class PaymentService {
     }
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
-    public void listen(String message) {
-        System.out.println("Received message: " + message);
+    public void listenForPaymentUpdate(PaymentStatusMessage msg) {
+        Order order = orderRepository.findById(msg.orderId()).get();
+        order.setStatus(msg.status());
+        orderRepository.save(order);
     }
 }
