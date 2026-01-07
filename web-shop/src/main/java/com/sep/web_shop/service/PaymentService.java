@@ -6,8 +6,10 @@ import com.sep.web_shop.dto.CreatePaymentRequest;
 import com.sep.web_shop.dto.CreatePaymentResponse;
 import com.sep.web_shop.psp.PspClient;
 import com.sep.web_shop.psp.PspInitPaymentRequest;
+import com.sep.web_shop.rabbitmq.RabbitMQConfig;
 import com.sep.web_shop.repository.MerchantInformationRepository;
 import com.sep.web_shop.repository.OrderRepository;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,5 +50,10 @@ public class PaymentService {
         var pspResp = pspClient.initPayment(pspReq);
 
         return new CreatePaymentResponse(order.getMerchantOrderId(), pspResp.redirectUrl());
+    }
+
+    @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
+    public void listen(String message) {
+        System.out.println("Received message: " + message);
     }
 }

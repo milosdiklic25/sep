@@ -11,6 +11,7 @@ import com.sep.psp.repository.BankMerchantInformationRepository;
 import com.sep.psp.repository.BankPaymentUpdateRepository;
 import com.sep.psp.repository.MerchantRepository;
 import com.sep.psp.repository.PaymentRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,8 @@ public class PspPaymentService {
     private BankMerchantInformationRepository bankMerchantInformationRepository;
     @Autowired
     private BankPaymentUpdateRepository bankPaymentUpdateRepository;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
     @Autowired
     private BankClient bankClient;
 
@@ -105,6 +108,8 @@ public class PspPaymentService {
                 .build();
 
         bankPaymentUpdateRepository.save(toSave);
+
+        rabbitTemplate.convertAndSend("exchange", "routing.key", "message");
 
         return new BankRedirectResponse(retVal);
     }
