@@ -1,0 +1,13 @@
+<div class="options">
+  <h2>Choose payment method</h2>
+
+  <p *ngIf="serverError" class="error">{{ serverError }}</p>
+
+  <button type="button" (click)="qr()" [disabled]="loading">
+    QR code
+  </button>
+
+  <button type="button" (click)="card()" [disabled]="loading">
+    Card
+  </button>
+</div>

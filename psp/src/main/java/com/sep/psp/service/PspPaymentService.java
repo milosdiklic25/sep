@@ -61,7 +61,7 @@ public class PspPaymentService {
 
         paymentRepository.save(payment);
 
-        String redirectUrl = pspFrontendBaseUrl + "/pay/" + payment.getPspPaymentId();
+        String redirectUrl = pspFrontendBaseUrl + "/options/" + payment.getPspPaymentId();
 
         return new PspInitPaymentResponse(redirectUrl, payment.getPspPaymentId());
     }
