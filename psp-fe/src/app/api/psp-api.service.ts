@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { environment } from "../../environments/environment";
 import { HttpClient } from "@angular/common/http";
-import { CardPaymentRequest, CardPaymentResponse } from "./dtos";
+import { CardPaymentRequest, CardPaymentResponse, RegisterMerchantRequest, RegisterMerchantResponse } from "./dtos";
 import { Observable } from "rxjs";
 
 @Injectable({ providedIn: 'root' })
@@ -15,6 +15,10 @@ export class PaymentApiService {
       `${this.baseUrl}/payments/card`,
       body
     );
+  }
+
+  register(body: RegisterMerchantRequest): Observable<RegisterMerchantResponse> {
+    return this.http.post<RegisterMerchantResponse>(`${this.baseUrl}/merchants/register`, body);
   }
 }
 

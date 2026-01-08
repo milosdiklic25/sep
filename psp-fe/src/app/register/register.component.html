@@ -1,0 +1,45 @@
+<div class="register">
+  <h2>Register merchant</h2>
+
+  <form [formGroup]="form" (ngSubmit)="register()">
+    <div>
+      <label>Name</label>
+      <input type="text" formControlName="name" />
+      <small *ngIf="f.name.touched && f.name.invalid">Name is required.</small>
+    </div>
+
+    <div>
+      <label>Password</label>
+      <input type="password" formControlName="password" />
+      <small *ngIf="f.password.touched && f.password.invalid">Password is required (min 6 chars).</small>
+    </div>
+
+    <div>
+      <label>Error URL</label>
+      <input type="text" formControlName="errorUrl" />
+      <small *ngIf="f.errorUrl.touched && f.errorUrl.invalid">Error URL is required.</small>
+    </div>
+
+    <div>
+      <label>Success URL</label>
+      <input type="text" formControlName="successUrl" />
+      <small *ngIf="f.successUrl.touched && f.successUrl.invalid">Success URL is required.</small>
+    </div>
+
+    <div>
+      <label>Fail URL</label>
+      <input type="text" formControlName="failUrl" />
+      <small *ngIf="f.failUrl.touched && f.failUrl.invalid">Fail URL is required.</small>
+    </div>
+
+    <p *ngIf="serverError" class="error">{{ serverError }}</p>
+
+    <button type="submit" [disabled]="loading">
+      {{ loading ? 'Registering...' : 'Register' }}
+    </button>
+  </form>
+
+  <div *ngIf="merchantId" style="margin-top: 16px;">
+    <strong>Merchant ID:</strong> {{ merchantId }}
+  </div>
+</div>
