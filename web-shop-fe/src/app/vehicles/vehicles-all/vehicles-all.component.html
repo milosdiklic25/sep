@@ -1,2 +1,8 @@
-<p>vehicles-all works!</p>
+<h3>Available vehicles</h3>
+<ul>
+  <li *ngFor="let v of (vehicles$ | async)" (click)="goToDetails(v.id)" style="cursor:pointer">
+        {{ v.brand || '' }} {{ v.model || '' }} {{ v.pricePerDay || '' }}
+  </li>
+</ul>
+
 <button (click)="signout()">Sign out</button>

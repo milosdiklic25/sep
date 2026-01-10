@@ -1,1 +1,10 @@
-<p>vehicle-details works!</p>
+<a routerLink="/vehicles">← Back</a>
+
+<div *ngIf="vehicle$ | async as v">
+  <h2>Vehicle {{ v.id }}</h2>
+  <div>Make: {{ v.brand }}</div>
+  <div>Model: {{ v.model }}</div>
+  <div>Model: {{ v.pricePerDay }}</div>
+</div>
+
+<button>Reserve</button>
