@@ -1,10 +1,24 @@
 <a routerLink="/vehicles">← Back</a>
 
 <div *ngIf="vehicle$ | async as v">
-  <h2>Vehicle {{ v.id }}</h2>
-  <div>Make: {{ v.brand }}</div>
-  <div>Model: {{ v.model }}</div>
-  <div>Model: {{ v.pricePerDay }}</div>
-</div>
+  <h2>{{ v.brand }} {{ v.model }}</h2>
+  <div>Price/day: {{ v.pricePerDay }}</div>
 
-<button>Reserve</button>
+  <form [formGroup]="reserveForm" (ngSubmit)="reserve(v.id)">
+    <label>
+      Start:
+      <input type="date" formControlName="startDate" />
+    </label>
+
+    <label>
+      End:
+      <input type="date" formControlName="endDate" />
+    </label>
+
+    <button type="submit" [disabled]="reserveForm.invalid || reserving">
+      {{ reserving ? 'Reserving...' : 'Reserve' }}
+    </button>
+  </form>
+
+  <div *ngIf="message">{{ message }}</div>
+</div>
