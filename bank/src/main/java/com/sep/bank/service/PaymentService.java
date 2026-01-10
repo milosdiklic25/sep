@@ -84,6 +84,10 @@ public class PaymentService {
         Double cost = payment.getAmount();
         Double balance = card.getAmount();
 
+        if (payment.getStatus() != Status.PSP_INITIATED) {
+            return PayResponse.fail("Invalid payment amount", paymentId, stan, Status.ERRORED);
+        }
+
         if (cost == null || cost <= 0) {
             return PayResponse.fail("Invalid payment amount", paymentId, stan, Status.ERRORED);
         }

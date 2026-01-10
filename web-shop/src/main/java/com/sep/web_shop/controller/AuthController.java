@@ -4,11 +4,15 @@ import com.sep.web_shop.model.User;
 import com.sep.web_shop.repository.UserRepository;
 import com.sep.web_shop.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -21,15 +25,15 @@ public class AuthController {
     @Autowired
     JwtUtil jwtUtils;
     @PostMapping("/signin")
-    public String authenticateUser(@RequestBody User user) {
+    public ResponseEntity<Map<String, String>> authenticateUser(@RequestBody User user) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         user.getUsername(),
                         user.getPassword()
                 )
         );
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return jwtUtils.generateToken(userDetails.getUsername());
+        String token = jwtUtils.generateToken(authentication.getName());
+        return ResponseEntity.ok(Map.of("accessToken", token));
     }
     @PostMapping("/signup")
     public String registerUser(@RequestBody User user) {
