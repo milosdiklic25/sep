@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Vehicle } from '../model/vehicle.model';
 import { ReserveRequest } from '../model/reserveRequest.model';
+import { CreatePaymentResponse } from '../model/reserveResponse.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +23,7 @@ export class VehicleService {
     return this.http.get<Vehicle>(`${this.baseUrl}/${id}`);
   }
   
-  reserve(req: ReserveRequest): Observable<any> {
-    return this.http.post(`${this.baseUrl}/reserve`, req);
+  reserve(req: ReserveRequest): Observable<CreatePaymentResponse> {
+    return this.http.post<CreatePaymentResponse>(`${this.baseUrl}/reserve`, req);
   }
 }

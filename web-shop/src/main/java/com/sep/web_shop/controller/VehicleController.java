@@ -1,9 +1,12 @@
 package com.sep.web_shop.controller;
 
 import com.sep.web_shop.dto.OrderRequest;
+import com.sep.web_shop.model.User;
 import com.sep.web_shop.model.Vehicle;
 import com.sep.web_shop.repository.OrderRepository;
+import com.sep.web_shop.repository.UserRepository;
 import com.sep.web_shop.repository.VehicleRepository;
+import com.sep.web_shop.service.PaymentService;
 import com.sep.web_shop.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +28,9 @@ public class VehicleController {
     @Autowired
     private VehicleService vehicleService;
     @Autowired
-    private OrderRepository orderRepository;
+    private PaymentService paymentService;
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping
     public List<Vehicle> getVehicles() {
@@ -39,7 +44,7 @@ public class VehicleController {
     }
     @PostMapping("/reserve")
     public ResponseEntity<?> reserve(@RequestBody OrderRequest req, Authentication auth) {
-        if (req.vehicleId() == null || req.userId() == null || req.startDate() == null || req.endDate() == null) {
+        if (req.vehicleId() == null || req.username() == null || req.startDate() == null || req.endDate() == null) {
             return ResponseEntity.badRequest().body("vehicleId, userId, startDate and endDate are required");
         }
         if (req.endDate().isBefore(req.startDate())) {
@@ -48,9 +53,10 @@ public class VehicleController {
 
         Date start = Date.from(req.startDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date end = Date.from(req.endDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+        User user = userRepository.findByUsername(req.username());
 
         Order order = Order.builder()
-                .userId(req.userId())
+                .userId(user.getId())
                 .vehicleId(req.vehicleId())
                 .startDate(start)
                 .endDate(end)
@@ -60,7 +66,7 @@ public class VehicleController {
                 .status(Order.Status.CREATED)
                 .build();
 
-        return ResponseEntity.ok(orderRepository.save(order));
+        return ResponseEntity.ok(paymentService.createPayment1(order));
     }
 
 }

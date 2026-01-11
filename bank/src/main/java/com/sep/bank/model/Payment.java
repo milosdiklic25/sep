@@ -23,5 +23,7 @@ public class Payment {
     private String currency;
     private UUID stan;
     private LocalDateTime pspTimestamp;
+    @Enumerated(EnumType.STRING)
+    @Column(name="status", nullable = false, length = 20)
     private Status status;
 }

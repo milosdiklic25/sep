@@ -29,4 +29,9 @@ public class PaymentController {
         var redirectUrl = paymentService.getRedirectUrl(resp);
         return ResponseEntity.ok(redirectUrl);
     }
+
+    @GetMapping("/amount/{paymentId}")
+    public ResponseEntity<Double> getAmount(@PathVariable UUID paymentId) {
+        return ResponseEntity.ok(paymentService.getAmount(paymentId));
+    }
 }

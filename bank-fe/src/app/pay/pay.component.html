@@ -1,5 +1,25 @@
 <h2>Pay</h2>
 
+<div style="display:flex; gap:12px; align-items:center; margin: 12px 0;">
+  <span style="font-size: 14px;">We Accept:</span>
+
+  <img src="/assets/Visa_Inc._logo.svg.png" alt="Visa" height="22" />
+  <img src="/assets/Mastercard-logo.svg.png" alt="Mastercard" height="22" />
+  <img src="/assets/Dina.png" alt="Dina" height="22" />
+</div>
+
+<div style="margin-bottom: 12px;">
+  <ng-container *ngIf="amountLoading; else amountBlock">
+    Loading amount…
+  </ng-container>
+
+  <ng-template #amountBlock>
+    <div *ngIf="amount !== null">
+      You have to pay this amount: <b>{{ amount | number:'1.2-2' }}</b>
+    </div>
+  </ng-template>
+</div>
+
 <form [formGroup]="form" (ngSubmit)="submit()" novalidate style="max-width: 420px;">
   <!-- Cardholder name -->
   <div style="margin-bottom: 12px;">
@@ -81,7 +101,7 @@
     {{ serverError }}
   </div>
 
-  <button type="submit" [disabled]="loading" style="padding: 10px 14px;">
+  <button type="submit" [disabled]="loading || amountLoading" style="padding: 10px 14px;">
     {{ loading ? 'Processing…' : 'Pay' }}
   </button>
 </form>

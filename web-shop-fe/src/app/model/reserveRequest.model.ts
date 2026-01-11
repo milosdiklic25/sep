@@ -1,6 +1,6 @@
 export interface ReserveRequest {
     vehicleId: string;
-    userId: string;
+    username: string;
     startDate: Date;
     endDate: Date;
 }

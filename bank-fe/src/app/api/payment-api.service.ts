@@ -16,6 +16,10 @@ export class PaymentApiService {
       body
     );
   }
+
+  getAmount(paymentId: string): Observable<number> {
+    return this.http.get<number>(`${this.baseUrl}/payments/amount/${paymentId}`);
+  }
 }
 
 export type { PayRequest, PspUpdateStatusResponse };

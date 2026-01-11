@@ -45,4 +45,29 @@ export class AuthService {
       }
     });
   }
+
+  base64UrlDecode(input: string): string {
+    // Convert base64url -> base64
+    let base64 = input.replace(/-/g, "+").replace(/_/g, "/");
+
+    // Pad with '='
+    const pad = base64.length % 4;
+    if (pad) base64 += "=".repeat(4 - pad);
+
+    // Decode base64 -> bytes -> utf-8 string
+    const binary = atob(base64);
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  }
+
+  getLoggedInUser(): string {
+    const token = localStorage.getItem("accessToken");
+    const parts = token!.split(".");
+    if (parts.length !== 3) throw new Error("Invalid JWT format");
+
+    const payloadJson = this.base64UrlDecode(parts[1]);
+    const payload = JSON.parse(payloadJson);
+    const username = payload.sub;
+    return username;
+  }
 }

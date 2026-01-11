@@ -4,7 +4,8 @@ import { Observable, switchMap } from 'rxjs';
 import { Vehicle } from '../../model/vehicle.model';
 import { VehicleService } from '../vehicle.service';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-vehicle-details',
@@ -23,11 +24,11 @@ export class VehicleDetailsComponent {
     endDate: new FormControl<Date>(new Date(), { nonNullable: true, validators: [Validators.required] }),
   });
 
-  constructor(private route: ActivatedRoute, private vehicleService: VehicleService) {
+  constructor(private route: ActivatedRoute, private vehicleService: VehicleService, private authService: AuthService) {
     this.vehicle$ = this.route.paramMap.pipe(
       switchMap(params => {
         const id = params.get('id') ?? '';
-        return this.vehicleService.getById(id); // id is UUID string
+        return this.vehicleService.getById(id);
       })
     );
   }
@@ -41,17 +42,17 @@ export class VehicleDetailsComponent {
 
     const startDate = this.reserveForm.value.startDate!;
     const endDate = this.reserveForm.value.endDate!;
+    const loggedInUser = this.authService.getLoggedInUser();
 
     this.reserving = true;
     this.vehicleService.reserve({
       vehicleId,
-      userId: 'a7503118-1989-46e4-9632-ae44d78e7529', 
+      username: loggedInUser, 
       startDate,
       endDate,
     }).subscribe({
-      next: () => {
-        this.message = 'Reserved!';
-        this.reserving = false;
+      next: (res) => {
+        window.location.href = res.redirectUrl;
       },
       error: (err) => {
         this.message = `Reserve failed (${err.status})`;

@@ -53,6 +53,27 @@ public class PaymentService {
         return new CreatePaymentResponse(order.getMerchantOrderId(), pspResp.redirectUrl());
     }
 
+    @Transactional
+    public CreatePaymentResponse createPayment1(Order order) {
+        MerchantInformation merchant = merchantRepository.findTopByOrderByIdAsc()
+                .orElseThrow(() -> new IllegalStateException("Merchant credentials not configured"));
+
+        orderRepository.save(order);
+
+        var pspReq = new PspInitPaymentRequest(
+                merchant.getMerchantId(),
+                merchant.getMerchantPassword(),
+                order.getAmount(),
+                order.getCurrency(),
+                order.getMerchantOrderId(),
+                order.getMerchantTimestamp()
+        );
+
+        var pspResp = pspClient.initPayment(pspReq);
+
+        return new CreatePaymentResponse(order.getMerchantOrderId(), pspResp.redirectUrl());
+    }
+
     @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
     public void listenForPaymentUpdate(PaymentStatusMessage msg) {
         Order order = orderRepository.findById(msg.orderId()).get();

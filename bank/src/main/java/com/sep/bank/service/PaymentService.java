@@ -18,6 +18,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Service
@@ -51,6 +54,7 @@ public class PaymentService {
                 .currency(req.currency())
                 .stan(req.pspPaymentId())
                 .pspTimestamp(req.pspTimestamp())
+                .status(Status.PSP_INITIATED)
                 .build();
         Payment saved = paymentRepository.save(payment);
         String url = bankFrontendBaseUrl + "/pay/" + saved.getId().toString();
@@ -85,7 +89,13 @@ public class PaymentService {
         Double balance = card.getAmount();
 
         if (payment.getStatus() != Status.PSP_INITIATED) {
-            return PayResponse.fail("Invalid payment amount", paymentId, stan, Status.ERRORED);
+            return PayResponse.fail("Payment already tried.", paymentId, stan, Status.ERRORED);
+        }
+
+        var pspTs = payment.getPspTimestamp();
+        Instant pspInstant = pspTs.atZone(ZoneId.systemDefault()).toInstant();
+        if (Duration.between(pspInstant, Instant.now()).toMinutes() > 60) {
+            return PayResponse.fail("Payment link expired.", paymentId, payment.getStan(), Status.FAILED);
         }
 
         if (cost == null || cost <= 0) {
@@ -120,5 +130,10 @@ public class PaymentService {
         );
         var pspStatusResp = pspClient.getBankUrl(pspStatus);
         return new PspUpdateStatusResponse(pspStatusResp.redirectUrl());
+    }
+
+    @Transactional
+    public Double getAmount(UUID paymentId) {
+        return paymentRepository.findById(paymentId).get().getAmount();
     }
 }

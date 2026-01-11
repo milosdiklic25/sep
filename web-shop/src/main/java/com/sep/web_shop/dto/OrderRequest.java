@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record OrderRequest(
     UUID vehicleId,
-    UUID userId,
+    String username,
     LocalDate startDate,
     LocalDate endDate
 ){}

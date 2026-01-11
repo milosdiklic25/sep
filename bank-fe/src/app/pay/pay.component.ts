@@ -8,8 +8,8 @@ import {
   ValidationErrors,
   Validators
 } from '@angular/forms';
-import { PaymentApiService, PayRequest } from '../api/payment-api.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { PaymentApiService, PayRequest } from '../api/payment-api.service';
 
 function luhnValidator(control: AbstractControl): ValidationErrors | null {
   const raw = (control.value ?? '').toString();
@@ -55,12 +55,11 @@ function expiryValidator(control: AbstractControl): ValidationErrors | null {
 
   // Expiry is usually end of the month
   const now = new Date();
-  const endOfExpiryMonth = new Date(year, month, 0, 23, 59, 59, 999); // day 0 => last day of previous month; month is 1-based here
-  // Explanation: new Date(year, month, 0) gives last day of month-1, so month=month gives correct last day for 1-based input
+  const endOfExpiryMonth = new Date(year, month, 0, 23, 59, 59, 999);
 
   if (endOfExpiryMonth < now) return { expiry: 'expired' };
 
-  // Optional: block too-far-in-future years (PSPs often allow up to 20 years)
+  // Optional: block too-far-in-future years
   if (year > now.getFullYear() + 25) return { expiry: 'future' };
 
   return null;
@@ -74,11 +73,15 @@ function expiryValidator(control: AbstractControl): ValidationErrors | null {
 })
 export class PayComponent {
   loading = false;
+
   serverError: string | null = null;
 
-  form!: FormGroup;
+  form: FormGroup;
 
   paymentId!: string;
+
+  amount: number | null = null;
+  amountLoading = false;
 
   constructor(
     private fb: FormBuilder,
@@ -99,16 +102,28 @@ export class PayComponent {
       return;
     }
     this.paymentId = id;
+
+    // Load amount
+    this.amountLoading = true;
+    this.api.getAmount(this.paymentId).subscribe({
+      next: (amt) => {
+        this.amount = amt;
+        this.amountLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.serverError = 'Failed to load amount.';
+        this.amountLoading = false;
+      }
+    });
   }
 
-
   get f() {
-    // typed access is optional; this is fine for now
     return this.form.controls as any;
   }
 
   submit() {
-    this.serverError = null;this.serverError = null;
+    this.serverError = null;
 
     if (!this.paymentId) {
       this.serverError = 'Missing payment id in URL.';
