@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Base64;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -169,10 +170,26 @@ public class PaymentService {
 
     @Transactional
     public byte[] getQR(UUID paymentId) {
-        paymentRepository.findById(paymentId)
+        var payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
 
-        String payload = "QR-" + UUID.randomUUID() + "|paymentId=" + paymentId;
+        String currency = payment.getCurrency();
+        if (currency == null || currency.isBlank()) {
+            throw new IllegalArgumentException("Payment currency is missing");
+        }
+        currency = currency.trim().toUpperCase(Locale.ROOT);
+
+        Double amount = payment.getAmount();
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("Payment amount is invalid");
+        }
+
+        String amountStr = amount.toString().replace('.', ',');
+
+        String payload =
+                "K:PR|V:01|C:1|R:105000000000000029|N:Web Shop|I:"
+                        + currency + amountStr
+                        + "|SF:221|S:Reservation";
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             BitMatrix matrix = new QRCodeWriter().encode(payload, BarcodeFormat.QR_CODE, 300, 300);
