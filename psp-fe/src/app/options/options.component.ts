@@ -29,6 +29,25 @@ export class OptionsComponent {
   }
 
   qr() {
+    this.serverError = null;
+
+    if (!this.orderId) {
+      this.serverError = 'Missing order id in URL.';
+      return;
+    }
+
+    this.loading = true;
+
+    this.api.payQr({ orderId: this.orderId }).subscribe({
+      next: (res) => {
+        window.location.href = res.redirectUrl;
+      },
+      error: (err) => {
+        console.error(err);
+        this.serverError = 'Could not start card payment. Please try again.';
+        this.loading = false;
+      }
+    });
   }
 
   card() {

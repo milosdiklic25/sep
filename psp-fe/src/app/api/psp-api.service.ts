@@ -17,6 +17,13 @@ export class PaymentApiService {
     );
   }
 
+  payQr(body: CardPaymentRequest): Observable<CardPaymentResponse> {
+    return this.http.post<CardPaymentResponse>(
+      `${this.baseUrl}/payments/qr`,
+      body
+    );
+  }
+
   register(body: RegisterMerchantRequest): Observable<RegisterMerchantResponse> {
     return this.http.post<RegisterMerchantResponse>(`${this.baseUrl}/merchants/register`, body);
   }
