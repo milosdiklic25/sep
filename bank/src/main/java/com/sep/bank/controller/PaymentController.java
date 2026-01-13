@@ -1,8 +1,6 @@
 package com.sep.bank.controller;
 
-import com.sep.bank.dto.GetRedirectUrlRequest;
-import com.sep.bank.dto.GetRedirectUrlResponse;
-import com.sep.bank.dto.PayRequest;
+import com.sep.bank.dto.*;
 import com.sep.bank.psp.PspUpdateStatusResponse;
 import com.sep.bank.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,5 +48,14 @@ public class PaymentController {
     @GetMapping(value = "/qr/{paymentId}", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<byte[]> qr(@PathVariable UUID paymentId) {
         return ResponseEntity.ok(paymentService.getQR(paymentId));
+    }
+
+    @PostMapping("/qr/validate/{paymentId}")
+    public ResponseEntity<QrValidateResponse> validateQr(
+            @PathVariable UUID paymentId,
+            @RequestBody QrValidateRequest request
+    ) {
+        boolean valid = paymentService.validateQrPayload(paymentId, request.payload());
+        return ResponseEntity.ok(new QrValidateResponse(valid, valid ? "OK" : "INVALID_QR"));
     }
 }

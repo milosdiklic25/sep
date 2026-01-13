@@ -1,0 +1,35 @@
+<div class="wrap">
+  <h2>Validate QR</h2>
+
+  <div class="meta">
+    <div><strong>paymentId:</strong> {{ paymentId }}</div>
+  </div>
+
+  <label class="file">
+    <span>Upload QR image (PNG/JPG):</span>
+    <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+  </label>
+
+  <div *ngIf="loading" class="info">Processing...</div>
+
+  <div *ngIf="decodedPayload" class="box">
+    <div class="title">Decoded payload</div>
+    <pre>{{ decodedPayload }}</pre>
+  </div>
+
+  <div *ngIf="apiResponse" class="box">
+    <div class="title">Backend validation result</div>
+    <div
+      class="badge"
+      [class.ok]="apiResponse.valid"
+      [class.bad]="!apiResponse.valid"
+    >
+      {{ apiResponse.valid ? 'VALID' : 'INVALID' }}
+    </div>
+    <div class="msg">{{ apiResponse.message }}</div>
+  </div>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
+  </div>
+</div>

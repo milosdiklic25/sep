@@ -25,12 +25,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class PaymentService {
@@ -78,7 +82,6 @@ public class PaymentService {
             throw new MerchantNotFoundException(req.bankMerchantId());
         }
 
-        //UUID paymentStan = UUID.randomUUID();
         Payment payment = Payment.builder()
                 .bankMerchantId(req.bankMerchantId())
                 .amount(req.amount())
@@ -198,5 +201,61 @@ public class PaymentService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate QR", e);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public boolean validateQrPayload(UUID paymentId, String scannedPayload) {
+        if (scannedPayload == null || scannedPayload.isBlank()) return false;
+
+        var payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
+
+        String expected = buildExpectedQrPayload(payment);
+
+        String normalizedScanned = normalizeIpsAmount(scannedPayload.trim().replace("\n","").replace("\r",""));
+        String normalizedExpected = normalizeIpsAmount(expected.trim());
+
+        return normalizedExpected.equals(normalizedScanned);
+    }
+
+    private String buildExpectedQrPayload(Payment payment) {
+        String currency = payment.getCurrency();
+        if (currency == null || currency.isBlank()) {
+            throw new IllegalArgumentException("Payment currency is missing");
+        }
+        currency = currency.trim().toUpperCase(Locale.ROOT);
+
+        Double amountDouble = payment.getAmount();
+        if (amountDouble == null || amountDouble <= 0) {
+            throw new IllegalArgumentException("Payment amount is invalid");
+        }
+
+        BigDecimal amount = BigDecimal.valueOf(amountDouble).setScale(2, RoundingMode.HALF_UP);
+        String amountStr = amount.toPlainString().replace('.', ',');
+
+        return "K:PR|V:01|C:1|R:105000000000000029|N:Web Shop|I:"
+                + currency + amountStr
+                + "|SF:221|S:Reservation";
+    }
+
+    private static final Pattern I_FIELD =
+            Pattern.compile("I:([A-Z]{3})(\\d+)(?:,(\\d{1,2}))?");
+
+    private String normalizeIpsAmount(String payload) {
+        Matcher m = I_FIELD.matcher(payload);
+        if (!m.find()) return payload;
+
+        String cur = m.group(1);
+        String whole = m.group(2);
+        String dec = m.group(3);
+
+        String dec2;
+        if (dec == null) dec2 = "00";
+        else if (dec.length() == 1) dec2 = dec + "0";
+        else dec2 = dec;
+
+        String normalizedI = "I:" + cur + whole + "," + dec2;
+
+        return payload.substring(0, m.start()) + normalizedI + payload.substring(m.end());
     }
 }
