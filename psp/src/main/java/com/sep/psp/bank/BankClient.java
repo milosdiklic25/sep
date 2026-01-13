@@ -19,4 +19,13 @@ public class BankClient {
                 .retrieve()
                 .body(BankGetUrlResponse.class);
     }
+
+    public BankGetUrlResponse getBankUrlQR(BankGetUrlRequest req) {
+        return restClient.post()
+                .uri("/api/payments/qr")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(req)
+                .retrieve()
+                .body(BankGetUrlResponse.class);
+    }
 }

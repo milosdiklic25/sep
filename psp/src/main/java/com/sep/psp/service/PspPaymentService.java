@@ -84,6 +84,23 @@ public class PspPaymentService {
     }
 
     @Transactional
+    public CardPaymentResponse requestBankUrlQR(CardPaymentRequest req) {
+        Payment payment = paymentRepository.findById(req.orderId()).get();
+        UUID bankMerchantId = bankMerchantInformationRepository.findByMerchantId(payment.getMerchantId()).get().getBankMerchantId();
+        var bankReq = new BankGetUrlRequest(
+                bankMerchantId,
+                payment.getAmount(),
+                payment.getCurrency(),
+                payment.getPspPaymentId(),
+                LocalDateTime.now()
+        );
+
+        var resp = bankClient.getBankUrlQR(bankReq);
+
+        return new CardPaymentResponse(resp.paymentUrl());
+    }
+
+    @Transactional
     public BankRedirectResponse getStatusRedirect(BankRedirectRequest req) {
         Payment payment = paymentRepository.findById(req.globalTransactionId()).get();
         payment.setStatus(req.status());

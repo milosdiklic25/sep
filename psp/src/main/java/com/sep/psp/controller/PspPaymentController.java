@@ -22,6 +22,11 @@ public class PspPaymentController {
         return ResponseEntity.ok(paymentService.requestBankUrl(req));
     }
 
+    @PostMapping("/qr")
+    public ResponseEntity<CardPaymentResponse> getUrlRedirectQR(@RequestBody CardPaymentRequest req) {
+        return ResponseEntity.ok(paymentService.requestBankUrlQR(req));
+    }
+
     @PostMapping("/redirect")
     public ResponseEntity<BankRedirectResponse> getStatusRedirect(@RequestBody BankRedirectRequest req) {
         return ResponseEntity.ok(paymentService.getStatusRedirect(req));
