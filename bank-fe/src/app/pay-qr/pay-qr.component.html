@@ -1,1 +1,129 @@
-<p>pay-qr works!</p>
+<div class="pay-qr">
+  <div *ngIf="loadingQr">Loading QR…</div>
+
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <img
+    #qrImg
+    *ngIf="!loadingQr && qrObjectUrl"
+    [src]="qrObjectUrl"
+    alt="Payment QR code"
+    (load)="onQrImageLoad()"
+  />
+
+  <!-- Hidden canvas used only when Scan is clicked -->
+  <canvas #qrCanvas class="hidden-canvas"></canvas>
+
+  <button
+    type="button"
+    (click)="scan()"
+    [disabled]="loadingQr || scanning || !qrObjectUrl || !qrImageLoaded"
+  >
+    {{ scanning ? 'Scanning…' : 'Scan' }}
+  </button>
+
+  <div *ngIf="parsed" class="fields">
+    <div><b>Payment code:</b> {{ parsed.paymentCode }}</div>
+    <div><b>Payment purpose:</b> {{ parsed.paymentPurpose }}</div>
+    <div><b>Account number:</b> {{ parsed.accountNumber }}</div>
+    <div><b>Amount:</b> {{ parsed.amount }}</div>
+    <div><b>Acquirer:</b> {{ parsed.acquirer }}</div>
+  </div>
+
+  <details *ngIf="decodedText">
+    <summary>Raw QR payload</summary>
+    <pre>{{ decodedText }}</pre>
+  </details>
+
+  <!-- ✅ Appended payment form -->
+  <form
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+    style="max-width: 420px; margin-top: 16px;"
+  >
+    <!-- Cardholder name -->
+    <div style="margin-bottom: 12px;">
+      <label for="cardholderName">Cardholder name</label><br />
+      <input
+        id="cardholderName"
+        type="text"
+        formControlName="cardholderName"
+        autocomplete="cc-name"
+        style="width: 100%; padding: 8px;"
+      />
+      <div *ngIf="f.cardholderName.touched && f.cardholderName.invalid" style="color: #b00020;">
+        <div *ngIf="f.cardholderName.errors?.['required']">Cardholder name is required.</div>
+        <div *ngIf="f.cardholderName.errors?.['minlength']">Name is too short.</div>
+      </div>
+    </div>
+
+    <!-- Card number -->
+    <div style="margin-bottom: 12px;">
+      <label for="cardNumber">Card number</label><br />
+      <input
+        id="cardNumber"
+        type="text"
+        formControlName="cardNumber"
+        inputmode="numeric"
+        autocomplete="cc-number"
+        placeholder="1234 5678 9012 3456"
+        style="width: 100%; padding: 8px;"
+      />
+      <div *ngIf="f.cardNumber.touched && f.cardNumber.invalid" style="color: #b00020;">
+        <div *ngIf="f.cardNumber.errors?.['required']">Card number is required.</div>
+        <div *ngIf="f.cardNumber.errors?.['luhn']">Card number is not valid.</div>
+      </div>
+    </div>
+
+    <!-- Expiry + CVV row -->
+    <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+      <!-- Expiry -->
+      <div style="flex: 1;">
+        <label for="expiryDate">Expiry (MM/YY)</label><br />
+        <input
+          id="expiryDate"
+          type="text"
+          formControlName="expiryDate"
+          inputmode="numeric"
+          autocomplete="cc-exp"
+          placeholder="MM/YY"
+          style="width: 100%; padding: 8px;"
+        />
+        <div *ngIf="f.expiryDate.touched && f.expiryDate.invalid" style="color: #b00020;">
+          <div *ngIf="f.expiryDate.errors?.['required']">Expiry date is required.</div>
+          <div *ngIf="f.expiryDate.errors?.['expiry'] === 'format'">Use MM/YY (or MM/YYYY).</div>
+          <div *ngIf="f.expiryDate.errors?.['expiry'] === 'month'">Month must be 01–12.</div>
+          <div *ngIf="f.expiryDate.errors?.['expiry'] === 'expired'">Card is expired.</div>
+          <div *ngIf="f.expiryDate.errors?.['expiry'] === 'future'">Year looks too far in the future.</div>
+        </div>
+      </div>
+
+      <!-- CVV -->
+      <div style="width: 120px;">
+        <label for="cvv">CVV</label><br />
+        <input
+          id="cvv"
+          type="password"
+          formControlName="cvv"
+          inputmode="numeric"
+          autocomplete="cc-csc"
+          placeholder="123"
+          style="width: 100%; padding: 8px;"
+        />
+        <div *ngIf="f.cvv.touched && f.cvv.invalid" style="color: #b00020;">
+          <div *ngIf="f.cvv.errors?.['required']">CVV is required.</div>
+          <div *ngIf="f.cvv.errors?.['pattern']">CVV must be 3–4 digits.</div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="serverError" style="color: #b00020; margin-bottom: 12px;">
+      {{ serverError }}
+    </div>
+
+    <button type="submit" [disabled]="loading || loadingQr || scanning" style="padding: 10px 14px;">
+      {{ loading ? 'Processing…' : 'Pay' }}
+    </button>
+  </form>
+</div>

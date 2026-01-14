@@ -1,0 +1,5 @@
+.error { color: #b00020; }
+.hidden-canvas { display: none; }
+.fields { display: grid; gap: 6px; margin-top: 12px; }
+pre { white-space: pre-wrap; }
+button { margin-top: 12px; }
