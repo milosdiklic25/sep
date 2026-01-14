@@ -14,6 +14,7 @@ import com.sep.psp.repository.PaymentRepository;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,8 @@ public class PspPaymentService {
     private RabbitTemplate rabbitTemplate;
     @Autowired
     private BankClient bankClient;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private final String pspFrontendBaseUrl;
 
@@ -46,7 +49,10 @@ public class PspPaymentService {
         Merchant merchant = merchantRepository.findById(req.merchantId())
                 .orElseThrow(() -> new UnauthorizedException("Invalid merchant credentials"));
 
-        if (!merchant.getPassword().equals(req.merchantPassword())) {
+        String test1 = req.merchantPassword();
+        String test2 = merchant.getPassword();
+        String test3 = passwordEncoder.encode(test1);
+        if (!passwordEncoder.matches(req.merchantPassword(), merchant.getPassword())) {
             throw new UnauthorizedException("Invalid merchant credentials");
         }
 
@@ -62,7 +68,6 @@ public class PspPaymentService {
         paymentRepository.save(payment);
 
         String redirectUrl = pspFrontendBaseUrl + "/options/" + payment.getPspPaymentId();
-
         return new PspInitPaymentResponse(redirectUrl, payment.getPspPaymentId());
     }
 
